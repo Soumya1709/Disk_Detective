@@ -1,0 +1,96 @@
+# commands.txt
+# Command log for the DiskDetective build.
+#
+# IMPORTANT: This is a TEMPLATE based on the planned commands. Replace/add
+# entries below with what you ACTUALLY ran on your VM, including any errors
+# you hit — those are the "troubleshooting narrative" the rubric scores.
+# If you didn't hit any errors in a phase, just keep the successful commands.
+
+## --- Phase 0: Test data setup ------------------------------------------
+
+$ sudo mkdir -p /data/renders /data/footage
+$ sudo dd if=/dev/zero of=/data/renders/final_cut_v3.mp4 bs=1M count=150
+$ sudo dd if=/dev/zero of=/data/footage/raw_footage_2024.mov bs=1M count=200
+$ sudo dd if=/dev/zero of=/data/renders/small_clip.mp4 bs=1M count=20
+$ sudo touch -d "300 days ago" /data/footage/old_project_backup.mov
+$ sudo touch -d "250 days ago" /data/renders/abandoned_edit.mp4
+$ sudo touch -d "10 days ago" /data/renders/recent_work.mp4
+$ sudo touch /data/footage/trainee1_project.mov
+$ sudo chown trainee1 /data/footage/trainee1_project.mov
+$ ls -la /data/renders /data/footage
+# CHECK: confirm 3 files in renders, 3 in footage, sizes and dates as expected
+
+
+## --- Phase 1: Filesystem survey ------------------------------------------
+
+$ lsblk
+$ df -h
+$ du -sh /data/* 2>/dev/null | sort -rh
+
+
+## --- Phase 2: The hunt -----------------------------------------------------
+
+$ find /data -type f -size +100M 2>/dev/null
+$ find /data -type f -mtime +180 2>/dev/null
+$ find /data -type f -user trainee1 2>/dev/null
+
+
+## --- Phase 3: Links investigation ------------------------------------------
+
+$ echo "original content" | sudo tee /data/testfile.txt
+$ sudo ln /data/testfile.txt /data/hardlink.txt
+$ sudo ln -s /data/testfile.txt /data/symlink.txt
+$ ls -li /data/testfile.txt /data/hardlink.txt /data/symlink.txt
+# CHECK: testfile.txt and hardlink.txt share the same inode number;
+# symlink.txt has a different inode and shows "-> /data/testfile.txt"
+
+$ sudo rm /data/testfile.txt
+$ cat /data/hardlink.txt
+# expect: "original content" still prints — data survives via the hard link
+$ cat /data/symlink.txt
+# expect: "No such file or directory" — symlink is now broken
+
+
+## --- Phase 4: Report building -----------------------------------------------
+
+$ { \
+    echo "===== STORAGE AUDIT REPORT ====="; \
+    df -h; \
+    du -sh /data/* 2>/dev/null | sort -rh | head -10; \
+    find /data -type f -size +100M 2>/dev/null; \
+    find /data -type f -mtime +180 2>/dev/null; \
+    find /data -type f 2>/dev/null | wc -l; \
+    find /data -type f -mtime +180 -exec du -ch {} + 2>/dev/null | tail -1; \
+  } | tee storage_audit.txt
+
+
+## --- Phase 5: Loopback archive ------------------------------------------
+
+$ sudo dd if=/dev/zero of=/home/tejaswi/coldarchive.img bs=1M count=300
+$ sudo losetup -fP /home/tejaswi/coldarchive.img
+$ losetup -a
+# NOTE the loop device name here (e.g. /dev/loop0) — used in next commands
+
+$ sudo mkfs.ext4 /dev/loop0
+$ sudo mkdir -p /mnt/coldarchive
+$ sudo mount /dev/loop0 /mnt/coldarchive
+$ mount | grep coldarchive
+$ df -h | grep coldarchive
+
+$ sudo find /data -type f -mtime +180 -exec cp {} /mnt/coldarchive/ \;
+$ ls -la /mnt/coldarchive
+
+
+## --- Phase 6: Archive evidence appended to report --------------------------
+
+$ { \
+    echo "===== ARCHIVE STEP EVIDENCE ====="; \
+    losetup -a; \
+    mount | grep coldarchive; \
+    df -h | grep coldarchive; \
+    ls -la /mnt/coldarchive; \
+  } >> storage_audit.txt
+
+$ cat storage_audit.txt
+# Final check — confirm both the main report and archive evidence sections
+# are present in the file.
