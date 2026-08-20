@@ -1,0 +1,50 @@
+===== STORAGE AUDIT REPORT — Thursday 20 August 2026 12:07:04 PM IST =====
+
+--- Filesystem Overview ---
+Filesystem             Size  Used Avail Use% Mounted on
+/dev/mapper/rhel-root   45G  5.2G   40G  12% /
+devtmpfs               809M     0  809M   0% /dev
+tmpfs                  837M   84K  837M   1% /dev/shm
+efivarfs               256K   76K  176K  31% /sys/firmware/efi/efivars
+tmpfs                  335M   13M  322M   4% /run
+tmpfs                  1.0M     0  1.0M   0% /run/credentials/systemd-journald.service
+/dev/nvme0n1p2         960M  344M  617M  36% /boot
+/dev/nvme0n1p1         599M  8.7M  591M   2% /boot/efi
+/dev/mapper/rhel-home   22G  580M   22G   3% /home
+tmpfs                  168M  140K  168M   1% /run/user/1000
+/dev/sr0               9.5G  9.5G     0 100% /run/media/ssinha/RHEL-10-1-BaseOS-x86_64
+tmpfs                  168M   56K  168M   1% /run/user/0
+
+--- Top 10 Largest Directories ---
+200M	/data/footage
+170M	/data/renders
+4.0K	/data/hardlink.txt
+0	/data/symlink.txt
+
+--- Files Over 100MB ---
+/data/renders/final_cut_v3.mp4
+/data/footage/raw_footage_2024.mov
+
+--- Stale Files (not modified in 180+ days) ---
+/data/renders/abandoned_edit.mp4
+/data/footage/old_project_backup.mov
+
+--- Total File Count ---
+8
+
+--- Reclaimable Space (stale files only) ---
+0	total
+===== ARCHIVE STEP EVIDENCE — Thursday 20 August 2026 12:09:32 PM IST =====
+--- losetup -a ---
+/dev/loop0: []: (/home/ssinha/coldarchive.img)
+--- mount | grep coldarchive ---
+/dev/loop0 on /mnt/coldarchive type ext4 (rw,relatime,seclabel)
+--- df -h (showing new mount) ---
+/dev/loop0             272M   14K  253M   1% /mnt/coldarchive
+--- Archived files ---
+total 13
+drwxr-xr-x. 3 root root  1024 Aug 20 12:09 .
+drwxr-xr-x. 4 root root    37 Aug 20 12:08 ..
+-rw-r--r--. 1 root root     0 Aug 20 12:09 abandoned_edit.mp4
+drwx------. 2 root root 12288 Aug 20 12:08 lost+found
+-rw-r--r--. 1 root root     0 Aug 20 12:09 old_project_backup.mov
